@@ -8,7 +8,6 @@ This project is a React application that visualizes a tree structure of books an
 - [Technologies Used](#technologies-used)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Components](#components)
 - [Services](#services)
 - [License](#license)
 
@@ -46,7 +45,14 @@ To run the application locally, use the following command:
     ```bash
     npm start
 
+## Services
+
+SPARQL Client
+
+The service responsible for querying the DBpedia SPARQL endpoint to fetch books and authors data.
+
 ## License
+
 This project is licensed under the MIT License. See the LICENSE file for details.
 
 

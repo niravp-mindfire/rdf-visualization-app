@@ -1,19 +1,21 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-import { fetchBooksAndAuthors } from "../services/sparqlClient";
+import { useApolloClient } from '@apollo/client'; // Import useApolloClient
+import { fetchBooksAndAuthors } from "../services/graphqlClient";
 
 const RDFGraphTree = () => {
   const [data, setData] = useState(null);
   const svgRef = useRef(null);
+  const client = useApolloClient(); // Initialize Apollo Client
 
   useEffect(() => {
     const fetchData = async () => {
-      const books = await fetchBooksAndAuthors();
+      const books = await fetchBooksAndAuthors(client); // Pass client to the function
       const treeData = { name: "Books", children: [] };
 
       books.forEach((item) => {
-        const bookLabel = item.book.value.split("/").pop().replace(/_/g, " ");
-        const authorLabel = item.author.value.split("/").pop().replace(/_/g, " ");
+        const bookLabel = item.book.split("/").pop().replace(/_/g, " ");
+        const authorLabel = item.author.split("/").pop().replace(/_/g, " ");
 
         // Check if the book already exists in the tree
         const existingBook = treeData.children.find((child) => child.name === bookLabel);
@@ -34,7 +36,7 @@ const RDFGraphTree = () => {
     };
 
     fetchData();
-  }, []);
+  }, [client]); // Add client as a dependency
 
   useEffect(() => {
     if (!data) return;

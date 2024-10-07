@@ -1,109 +1,108 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { DataSet, Network } from 'vis-network/standalone';
-import { fetchBooksAndAuthors } from '../services/sparqlClient';
-import Loading from './Loading';
+import React, { useEffect, useRef, useState } from "react";
+import * as d3 from "d3";
+import { fetchBooksAndAuthors } from "../services/sparqlClient";
 
-const Graph = () => {
-  const [networkData, setNetworkData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [graphContainer, setGraphContainer] = useState(null); // State to hold the graph container
-  const networkRef = useRef(null); // Reference for the Network instance
+const RDFGraphTree = () => {
+  const [data, setData] = useState(null);
+  const svgRef = useRef(null);
 
-  // Fetch data when the component mounts
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
-      setError(null);
+      const books = await fetchBooksAndAuthors();
+      const treeData = { name: "Books", children: [] };
 
-      try {
-        const books = await fetchBooksAndAuthors();
-        console.log('Fetched Books and Authors:', books);
+      books.forEach((item) => {
+        const bookLabel = item.book.value.split("/").pop().replace(/_/g, " ");
+        const authorLabel = item.author.value.split("/").pop().replace(/_/g, " ");
 
-        const nodes = new DataSet();
-        const edges = new DataSet();
+        // Check if the book already exists in the tree
+        const existingBook = treeData.children.find((child) => child.name === bookLabel);
 
-        books.forEach((item, index) => {
-          const bookId = `book${index}`;
-          const bookLabel = item.book.value.split('/').pop().replace(/_/g, ' ');
-          const authorLabel = item.author.value.split('/').pop().replace(/_/g, ' ');
+        if (existingBook) {
+          // If the book exists, add the author to its children
+          existingBook.children.push({ name: authorLabel });
+        } else {
+          // If the book does not exist, create a new entry
+          treeData.children.push({
+            name: bookLabel,
+            children: [{ name: authorLabel }],
+          });
+        }
+      });
 
-          nodes.add({ id: bookId, label: bookLabel });
-          nodes.add({ id: item.author.value, label: authorLabel });
-
-          edges.add({ from: bookId, to: item.author.value });
-        });
-
-        console.log('Nodes:', nodes);
-        console.log('Edges:', edges);
-
-        setNetworkData({ nodes, edges });
-        console.log('Network data set:', { nodes, edges });
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to load graph data.");
-      } finally {
-        setLoading(false);
-      }
+      setData(treeData);
     };
 
     fetchData();
-  }, []); // Empty dependency array to run only on mount
+  }, []);
 
-  // Initialize the graph once the networkData and graphContainer are available
   useEffect(() => {
-    console.log('Current graphContainer:', graphContainer); // Log the graphContainer
-    console.log('Current networkData:', networkData); // Log the networkData
+    if (!data) return;
 
-    if (networkData && graphContainer) {
-      console.log('Initializing Network...');
-      const options = {
-        physics: true, // Enable physics simulation for dynamic layout
-      };
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove(); // Clear previous contents
 
-      // Create the Network instance if it doesn't exist
-      if (!networkRef.current) {
-        console.log('Creating new Network instance...');
-        networkRef.current = new Network(graphContainer, networkData, options);
-        console.log('Network instance created:', networkRef.current);
+    // Set dimensions and margins
+    const width = 900;
+    const height = 600;
+    const treeLayout = d3.tree().size([height, width - 160]);
 
-        // Listen for click events on the graph
-        networkRef.current.on('click', (params) => {
-          console.log('Clicked nodes:', params.nodes);
-        });
-      } else {
-        // If the Network instance already exists, update its data
-        networkRef.current.setData(networkData);
-      }
+    // Create a root node
+    const root = d3.hierarchy(data);
+    treeLayout(root);
 
-      // Clean up the network instance when the component unmounts
-      return () => {
-        if (networkRef.current) {
-          networkRef.current.destroy();
-          networkRef.current = null; // Reset the reference
-        }
-      };
-    } else {
-      console.log('Graph reference or network data not available yet:', { graphContainer, networkData });
-    }
-  }, [networkData, graphContainer]); // Depend on both networkData and graphContainer
+    // Create links
+    svg
+      .selectAll(".link")
+      .data(root.links())
+      .enter()
+      .append("line")
+      .attr("class", "link")
+      .attr("x1", (d) => d.source.y)
+      .attr("y1", (d) => d.source.x + 10) // Offset to avoid overlap
+      .attr("x2", (d) => d.target.y)
+      .attr("y2", (d) => d.target.x - 10) // Offset to avoid overlap
+      .style("stroke", "#999")
+      .style("stroke-width", 2);
 
-  // Set the graph container using a callback ref
-  const setContainerRef = (node) => {
-    if (node) {
-      setGraphContainer(node);
-    }
-  };
+    // Create nodes
+    const node = svg
+      .selectAll(".node")
+      .data(root.descendants())
+      .enter()
+      .append("g")
+      .attr("class", "node")
+      .attr("transform", (d) => `translate(${d.y}, ${d.x})`);
 
-  if (loading) return <Loading />;
-  if (error) return <div>{error}</div>;
+    node
+      .append("circle")
+      .attr("r", 10)
+      .style("fill", (d) => (d.children ? "#69b3a2" : "#ff6347"))
+      .style("stroke", "#fff")
+      .style("stroke-width", 1.5);
+
+    node
+      .append("text")
+      .attr("dx", 12)
+      .attr("dy", 0) // Align text vertically centered
+      .text((d) => d.data.name)
+      .style("font-size", "12px")
+      .style("fill", "#333"); // Change text color for better visibility
+
+    // Add zoom functionality
+    const zoom = d3.zoom().on("zoom", (event) => {
+      svg.attr("transform", event.transform);
+    });
+
+    svg.call(zoom);
+  }, [data]);
 
   return (
-    <div
-      ref={setContainerRef}
-      style={{ height: '600px', border: '1px solid lightgray' }} // Added border for visibility
-    />
+    <div>
+      <h3>Books and Authors Tree Visualization</h3>
+      <svg ref={svgRef} width="900" height="600" />
+    </div>
   );
 };
 
-export default Graph;
+export default RDFGraphTree;

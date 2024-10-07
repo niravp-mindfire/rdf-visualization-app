@@ -48,7 +48,7 @@ This project sets up a simple GraphQL server using Apollo Server. The server fet
 ### Sample Data Structure
 The API returns a list of books and authors in the following format:
 
-    ```bash
+    ```json
     {
         "data": {
             "booksAndAuthors": [

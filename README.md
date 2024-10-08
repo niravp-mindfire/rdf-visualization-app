@@ -61,5 +61,5 @@ This project is licensed under the MIT License. See the LICENSE file for details
 - Make sure to customize the **License** section according to your actual license.
 - Add any additional sections as necessary, such as "Contributing" or "Contact". 
 
-This README provides a clear overview and will help users understand how to set up and use your project effectively.
+This README provides a clear overview and will help users understand how to set up and use your project effectively
 

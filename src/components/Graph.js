@@ -26,8 +26,8 @@ const RDFGraphTree = () => {
         } else {
           // If the book does not exist, create a new entry
           treeData.children.push({
-            name: bookLabel,
-            children: [{ name: authorLabel }],
+            name: `${bookLabel}(Book)`,
+            children: [{ name: `${authorLabel}(Author)` }],
           });
         }
       });

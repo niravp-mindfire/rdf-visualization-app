@@ -74,6 +74,6 @@ GraphQL for the query language for APIs.
 1. **Copy and paste** the content into a file named `README.md` in the root directory of your project.
 2. Modify the `<your-repository-url>` in the **Installation** section with your actual repository URL if you're hosting the code on a platform like GitHub.
 
-This README provides a concise overview of your project, including setup instructions, API testing details, and future improvement suggestions. Let me know if you need any modifications or additional information!
+This README provides a concise overview of your project, including setup instructions, API testing details, and future improvement suggestions. Let me know if you need any modifications or additional information
 
 

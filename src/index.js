@@ -7,7 +7,7 @@ window.Buffer = Buffer;
 
 // Create an Apollo Client
 const client = new ApolloClient({
-  uri: 'http://localhost:4000/graphql', // Your GraphQL server endpoint
+  uri: 'https://rdf-visualization-app.onrender.com/graphql', // Your GraphQL server endpoint
   cache: new InMemoryCache(),
 });
 

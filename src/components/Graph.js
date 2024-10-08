@@ -12,6 +12,7 @@ const RDFGraphTree = () => {
       const treeData = { name: "Books", children: [] };
 
       books.forEach((item) => {
+        console.log(item, "=====item");
         const bookLabel = item.book.value.split("/").pop().replace(/_/g, " ");
         const authorLabel = item.author.value.split("/").pop().replace(/_/g, " ");
 
@@ -24,8 +25,8 @@ const RDFGraphTree = () => {
         } else {
           // If the book does not exist, create a new entry
           treeData.children.push({
-            name: bookLabel,
-            children: [{ name: authorLabel }],
+            name: `${bookLabel}(Book)`,
+            children: [{ name: `${authorLabel}(Author)` }],
           });
         }
       });
